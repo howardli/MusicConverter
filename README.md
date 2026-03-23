@@ -2,7 +2,6 @@
 
 [![Java](https://img.shields.io/badge/Java-8+-orange.svg)](https://www.oracle.com/java/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Build](https://github.com/xiahaimoyu/MusicConverter/actions/workflows/build.yml/badge.svg)](https://github.com/xiahaimoyu/MusicConverter/actions/workflows/build.yml)
 
 网易云音乐 NCM 格式解密工具，将加密的音乐文件转换为标准的 MP3/FLAC 格式。
 
@@ -19,7 +18,7 @@
 
 ### 方式一：下载预编译版本
 
-从 [Releases](https://github.com/xiahaimoyu/MusicConverter/releases) 页面下载最新版 `MusicConverter.jar`
+从 [Releases](https://github.com/howardli/MusicConvertor/releases) 页面下载最新版 `MusicConverter.jar`
 
 ### 方式二：自行编译
 
