@@ -9,6 +9,7 @@ import com.xiahaimoyu.musicconverter.util.PathUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 /**
@@ -21,7 +22,7 @@ public final class CopyDecoder implements Decoder {
     @Override
     public ConversionResult decode(Path source, Path output) throws ConverterException {
         String extension = PathUtils.extractExtension(source.getFileName().toString());
-        Path target = Path.of(output + "." + extension);
+        Path target = Paths.get(output + "." + extension);
 
         try {
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);

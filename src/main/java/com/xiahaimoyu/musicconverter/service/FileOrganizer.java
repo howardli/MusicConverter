@@ -7,6 +7,7 @@ import com.xiahaimoyu.musicconverter.exception.ConverterException.ErrorCode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static com.xiahaimoyu.musicconverter.util.PathUtils.baseNameOf;
 import static com.xiahaimoyu.musicconverter.util.PathUtils.extensionOf;
@@ -31,7 +32,7 @@ public final class FileOrganizer {
      */
     public Path ensureTargetDir(Path source, Path sourceRoot, Path targetRoot) {
         Path relativeDir = sourceRoot.relativize(source).getParent();
-        Path targetDir = targetRoot.resolve(relativeDir != null ? relativeDir : Path.of(""));
+        Path targetDir = targetRoot.resolve(relativeDir != null ? relativeDir : Paths.get(""));
         try {
             Files.createDirectories(targetDir);
         } catch (IOException e) {
