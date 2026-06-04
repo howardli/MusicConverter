@@ -3,6 +3,9 @@ package com.xiahaimoyu.musicconverter.plugin.builtin;
 import com.xiahaimoyu.musicconverter.plugin.AbstractPlugin;
 import com.xiahaimoyu.musicconverter.plugin.Decoder;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -12,8 +15,8 @@ import java.util.Set;
  */
 public final class CopyPlugin extends AbstractPlugin {
 
-    private static final Set<String> EXTENSIONS = Set.of(
-            "mp3", "flac", "wav", "aac", "ogg", "m4a");
+    private static final Set<String> EXTENSIONS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("mp3", "flac", "wav", "aac", "ogg", "m4a")));
 
     @Override
     public String pluginName() {

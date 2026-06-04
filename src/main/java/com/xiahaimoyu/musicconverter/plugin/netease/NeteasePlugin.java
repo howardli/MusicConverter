@@ -4,6 +4,7 @@ import com.xiahaimoyu.musicconverter.plugin.AbstractPlugin;
 import com.xiahaimoyu.musicconverter.plugin.Decoder;
 import com.xiahaimoyu.musicconverter.plugin.MetadataHandler;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -13,7 +14,7 @@ import java.util.Set;
  */
 public final class NeteasePlugin extends AbstractPlugin {
 
-    private static final Set<String> EXTENSIONS = Set.of("ncm");
+    private static final Set<String> EXTENSIONS = Collections.singleton("ncm");
 
     @Override
     public String pluginName() {
