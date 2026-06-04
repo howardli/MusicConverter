@@ -8,6 +8,7 @@ import com.xiahaimoyu.musicconverter.service.ConversionSummary;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * 音乐格式转换器
@@ -70,8 +71,19 @@ public final class MusicConverterApp {
         if (args.length < 2) {
             return null;
         }
-        return new CommandLine(Path.of(args[0]).toAbsolutePath(), Path.of(args[1]).toAbsolutePath());
+        return new CommandLine(Paths.get(args[0]).toAbsolutePath(), Paths.get(args[1]).toAbsolutePath());
     }
 
-    private record CommandLine(Path source, Path target) {}
+    private static final class CommandLine {
+        private final Path source;
+        private final Path target;
+
+        CommandLine(Path source, Path target) {
+            this.source = source;
+            this.target = target;
+        }
+
+        Path source() { return source; }
+        Path target() { return target; }
+    }
 }

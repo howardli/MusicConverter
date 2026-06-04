@@ -9,6 +9,7 @@ import com.xiahaimoyu.musicconverter.plugin.Decoder;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * NCM 解码器
@@ -47,7 +48,7 @@ public final class NcmDecoder implements Decoder {
                     .build();
 
             // 6. 解密音频数据
-            Path outputFile = Path.of(output + "." + fullMetadata.format());
+            Path outputFile = Paths.get(output + "." + fullMetadata.format());
             NcmFormat.decryptAudio(raf, sbox, outputFile);
 
             return ConversionResult.success(outputFile, fullMetadata);
