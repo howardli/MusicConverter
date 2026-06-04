@@ -1,16 +1,13 @@
 package com.xiahaimoyu.musicconverter;
 
-import com.xiahaimoyu.musicconverter.convertor.ConverterRegistry;
-import com.xiahaimoyu.musicconverter.convertor.CopyConverter;
-import com.xiahaimoyu.musicconverter.convertor.netease.NcmConverter;
+import com.xiahaimoyu.musicconverter.plugin.builtin.CopyPlugin;
+import com.xiahaimoyu.musicconverter.plugin.PluginRegistry;
+import com.xiahaimoyu.musicconverter.plugin.netease.NeteasePlugin;
+import com.xiahaimoyu.musicconverter.service.ConversionService;
+import com.xiahaimoyu.musicconverter.service.ConversionSummary;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
-
-import static com.xiahaimoyu.musicconverter.util.PathUtils.extractExtension;
 
 /**
  * 音乐格式转换器
@@ -19,54 +16,62 @@ import static com.xiahaimoyu.musicconverter.util.PathUtils.extractExtension;
  */
 public final class MusicConverterApp {
 
-    private static final int EXIT_USAGE = 1;
+    private static final int EXIT_USAGE_ERROR = 1;
     private static final int EXIT_SOURCE_NOT_FOUND = 2;
 
-    public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
+    public static void main(String[] args) {
+        CommandLine cmd = parseArgs(args);
+        if (cmd == null) {
             System.err.println("用法: java -jar MusicConverter.jar <源目录> <目标目录>");
-            System.exit(EXIT_USAGE);
+            System.exit(EXIT_USAGE_ERROR);
+            return;
         }
 
-        Path source = Paths.get(args[0]).toAbsolutePath();
-        Path target = Paths.get(args[1]).toAbsolutePath();
-
-        if (Files.notExists(source)) {
-            System.err.println("源目录不存在: " + source);
+        if (!Files.exists(cmd.source())) {
+            System.err.println("源目录不存在: " + cmd.source());
             System.exit(EXIT_SOURCE_NOT_FOUND);
+            return;
         }
 
-        ConverterRegistry registry = ConverterRegistry.of(
-                new CopyConverter(),
-                new NcmConverter()
-                // new QmcConverter(),  // QQ音乐
-                // new KgmConverter()   // 酷狗音乐
-        );
+        ConversionService service = createService();
 
-        System.out.println("源目录: " + source);
-        System.out.println("目标目录: " + target);
-        System.out.println("支持格式: " + String.join(", ", registry.allExtensions()));
+        System.out.println("源目录: " + cmd.source());
+        System.out.println("目标目录: " + cmd.target());
+        System.out.println("支持格式: " + String.join(", ", service.supportedFormats()));
         System.out.println();
 
-        processAllFiles(source, target, registry);
-    }
+        ConversionSummary summary = service.processDirectory(cmd.source(), cmd.target());
 
-    private static void processAllFiles(Path source, Path target, ConverterRegistry registry) throws Exception {
-        AtomicInteger processed = new AtomicInteger();
+        System.out.println();
+        System.out.printf("完成! 处理 %d 个文件，成功 %d，跳过 %d，失败 %d%n",
+                summary.totalFiles(),
+                summary.successCount(),
+                summary.skippedCount(),
+                summary.failedCount());
 
-        try (Stream<Path> files = Files.walk(source)) {
-            files.parallel()
-                 .filter(Files::isRegularFile)
-                 .filter(f -> registry.supports(extractExtension(f.getFileName().toString())))
-                 .forEach(file -> {
-                     registry.find(extractExtension(file.getFileName().toString()))
-                             .ifPresent(converter -> {
-                                 converter.process(file, source, target);
-                                 System.out.printf("\r已处理: %d 个文件    ", processed.incrementAndGet());
-                             });
-                 });
+        if (!summary.failures().isEmpty()) {
+            System.out.println("失败详情:");
+            summary.failures().forEach(e ->
+                    System.out.println("  - " + e.code().message() + ": " + e.file()));
         }
-
-        System.out.printf("%n完成! 共处理 %d 个文件%n", processed.get());
     }
+
+    private static ConversionService createService() {
+        PluginRegistry registry = PluginRegistry.of(
+                new CopyPlugin(),
+                new NeteasePlugin()
+                // new QmcPlugin(),   // QQ音乐（待实现）
+                // new KgmPlugin()    // 酷狗音乐（待实现）
+        );
+        return new ConversionService(registry);
+    }
+
+    private static CommandLine parseArgs(String[] args) {
+        if (args.length < 2) {
+            return null;
+        }
+        return new CommandLine(Path.of(args[0]).toAbsolutePath(), Path.of(args[1]).toAbsolutePath());
+    }
+
+    private record CommandLine(Path source, Path target) {}
 }
