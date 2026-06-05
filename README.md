@@ -12,13 +12,13 @@
 - 🎯 **音质优先** - 自动比较音质，保留高比特率/采样率版本
 - 📁 **目录结构** - 保持原有文件夹层级结构
 - ⚡ **并行处理** - 多线程处理，性能优异
-- 🔧 **易扩展** - 良好的接口设计，支持快速添加新平台
+- 🔧 **插件架构** - 模块化设计，支持快速扩展新平台
 
 ## 📥 下载安装
 
 ### 方式一：下载预编译版本
 
-从 [Releases](https://github.com/howardli/MusicConvertor/releases) 页面下载最新版 `MusicConverter.jar`
+从 [Releases](https://github.com/xiahaimoyu/MusicConverter/releases) 页面下载最新版 `MusicConverter.jar`
 
 ### 方式二：自行编译
 
@@ -62,7 +62,7 @@ java -jar MusicConverter.jar "/home/xxx/Music/网易云音乐" "/home/xxx/Music/
 支持格式: ncm, mp3, flac, wav, aac, ogg, m4a
 
 已处理: 128 个文件
-完成! 共处理 128 个文件
+完成! 处理 128 个文件，成功 128，跳过 0，失败 0
 ```
 
 ## 📋 支持格式
@@ -78,23 +78,91 @@ java -jar MusicConverter.jar "/home/xxx/Music/网易云音乐" "/home/xxx/Music/
 
 ```
 src/main/java/com/xiahaimoyu/musicconverter/
-├── MusicConverterApp.java          # 应用入口
+├── MusicConverterApp.java           # 应用入口
+├── config/
+│   └── ConverterConfig.java         # 配置常量
+├── exception/
+│   └── ConverterException.java      # 异常定义
 ├── model/
-│   └── MusicMeta.java              # 音乐元数据模型
-├── convertor/
-│   ├── MusicConverter.java         # 转换器接口
-│   ├── AbstractConverter.java      # 抽象基类（模板方法）
-│   ├── ConversionContext.java      # 转换上下文
-│   ├── ConverterRegistry.java      # 转换器注册表
-│   ├── CopyConverter.java          # 普通音频复制器
-│   └── netease/
-│       ├── NcmConverter.java       # NCM 转换器
-│       └── NcmFormat.java          # NCM 格式解析
+│   ├── AudioMetadata.java           # 音频元数据模型
+│   └── ConversionResult.java        # 转换结果模型
+├── plugin/                          # 插件系统
+│   ├── FormatPlugin.java            # 插件主接口
+│   ├── AudioDecoder.java            # 解码器接口
+│   ├── MetadataHandler.java         # 元数据处理器接口
+│   ├── AbstractPlugin.java          # 插件抽象基类
+│   ├── PluginRegistry.java          # 插件注册表
+│   ├── builtin/                     # 内置插件
+│   │   ├── CopyPlugin.java          # 普通音频复制插件
+│   │   └── CopyDecoder.java         # 复制解码器
+│   └── netease/                     # 网易云音乐插件
+│       ├── NeteasePlugin.java       # 插件入口
+│       ├── NcmDecoder.java          # NCM 解码器
+│       ├── NcmFormat.java           # NCM 格式解析
+│       └── NcmMetadataHandler.java  # 元数据处理
+├── service/                         # 服务层
+│   ├── ConversionService.java       # 转换编排服务
+│   ├── ConversionSummary.java       # 转换统计
+│   ├── FileOrganizer.java           # 文件组织服务
+│   └── QualityComparator.java       # 音质比较服务
 └── util/
-    ├── PathUtils.java              # 路径处理工具
-    ├── AudioUtils.java             # 音频处理工具
-    └── ImageUtils.java             # 图片处理工具
+    ├── PathUtils.java               # 路径处理工具
+    ├── AudioUtils.java              # 音频处理工具
+    └── ImageUtils.java              # 图片处理工具
 ```
+
+## 🔌 扩展开发
+
+本项目采用插件化架构，支持快速扩展新平台。
+
+### 添加新平台插件
+
+1. 创建插件类，继承 `AbstractPlugin`：
+
+```java
+public final class QmcPlugin extends AbstractPlugin {
+    
+    @Override
+    public String pluginName() {
+        return "QQ Music";
+    }
+    
+    @Override
+    public Set<String> supportedExtensions() {
+        return Collections.singleton("qmc");
+    }
+    
+    @Override
+    protected AudioDecoder createDecoderInstance() {
+        return new QmcDecoder();
+    }
+    
+    @Override
+    protected MetadataHandler createMetadataHandlerInstance() {
+        return new QmcMetadataHandler();
+    }
+}
+```
+
+2. 实现解码器 `AudioDecoder` 和元数据处理器 `MetadataHandler`
+
+3. 在 `MusicConverterApp.java` 中注册插件：
+
+```java
+PluginRegistry registry = PluginRegistry.of(
+    new CopyPlugin(),
+    new NeteasePlugin(),
+    new QmcPlugin()  // 新增插件
+);
+```
+
+### 核心接口
+
+| 接口 | 职责 |
+|------|------|
+| `FormatPlugin` | 插件主接口，定义支持的格式和组件创建 |
+| `AudioDecoder` | 音频解码，将加密文件转为标准格式 |
+| `MetadataHandler` | 元数据处理，写入专辑/艺术家/封面等信息 |
 
 ## 📦 依赖项
 
