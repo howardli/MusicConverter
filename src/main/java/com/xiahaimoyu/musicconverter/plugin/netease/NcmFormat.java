@@ -1,8 +1,8 @@
 package com.xiahaimoyu.musicconverter.plugin.netease;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.xiahaimoyu.musicconverter.config.ConverterConfig;
 import com.xiahaimoyu.musicconverter.exception.ConverterException;
 import com.xiahaimoyu.musicconverter.exception.ConverterException.ErrorCode;
@@ -28,6 +28,10 @@ final class NcmFormat {
     // AES 密钥（硬编码）
     private static final byte[] CORE_KEY = hex("687A4852416D736F356B496E62617857");
     private static final byte[] META_KEY = hex("2331346C6A6B5F215C5D2630553C2728");
+
+    // XOR 解密常量
+    private static final int XOR_KEY_BLOCK = 0x64;
+    private static final int XOR_META_BLOCK = 0x63;
 
     // NCM 文件结构常量
     private static final int HEADER_SIZE = 10;
@@ -57,7 +61,7 @@ final class NcmFormat {
     static int[] readKeyAndBuildSbox(RandomAccessFile raf) throws ConverterException {
         try {
             byte[] encryptedKey = readBlock(raf);
-            xor(encryptedKey, 0x64);
+            xor(encryptedKey, XOR_KEY_BLOCK);
 
             byte[] decrypted = aesDecrypt(CORE_KEY, encryptedKey);
             byte[] rc4Key = new byte[decrypted.length - KEY_PREFIX_LENGTH];
@@ -75,7 +79,7 @@ final class NcmFormat {
     static AudioMetadata readMetadata(RandomAccessFile raf) throws ConverterException {
         try {
             byte[] encrypted = readBlock(raf);
-            xor(encrypted, 0x63);
+            xor(encrypted, XOR_META_BLOCK);
 
             byte[] decoded = Base64.getMimeDecoder().decode(
                     new String(encrypted, META_PREFIX_LENGTH, encrypted.length - META_PREFIX_LENGTH));

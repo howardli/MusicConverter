@@ -9,13 +9,17 @@ import com.xiahaimoyu.musicconverter.plugin.FormatPlugin;
 import com.xiahaimoyu.musicconverter.plugin.MetadataHandler;
 import com.xiahaimoyu.musicconverter.plugin.PluginRegistry;
 import com.xiahaimoyu.musicconverter.util.PathUtils;
+import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -128,29 +132,37 @@ public final class ConversionService {
      */
     public ConversionSummary processDirectory(Path sourceRoot, Path targetRoot) {
         ConversionSummary.Builder summary = ConversionSummary.builder();
-        AtomicInteger processed = new AtomicInteger(0);
 
+        // 先收集所有文件，以便显示进度条
         try (Stream<Path> files = Files.walk(sourceRoot)) {
-            files.parallel()
-                    .filter(Files::isRegularFile)
-                    .forEach(file -> {
-                        summary.incrementTotal();
+            List<Path> allFiles = files.filter(Files::isRegularFile).collect(Collectors.toList());
 
-                        ConversionSummary.Result result = processFile(file, sourceRoot, targetRoot);
+            ProgressBar pb = new ProgressBarBuilder()
+                    .setTaskName("处理文件")
+                    .setInitialMax(allFiles.size())
+                    .setStyle(ProgressBarStyle.COLORFUL_UNICODE_BLOCK)
+                    .build();
 
-                        if (result.isSuccess()) {
-                            summary.incrementSuccess();
-                        } else if (result.isSkipped()) {
-                            summary.incrementSkipped();
-                        } else {
-                            summary.incrementFailed();
-                            if (result.failure() != null) {
-                                summary.addFailure(result.failure());
-                            }
-                        }
+            for (Path file : allFiles) {
+                summary.incrementTotal();
 
-                        System.out.printf("\r已处理: %d 个文件    ", processed.incrementAndGet());
-                    });
+                ConversionSummary.Result result = processFile(file, sourceRoot, targetRoot);
+
+                if (result.isSuccess()) {
+                    summary.incrementSuccess();
+                } else if (result.isSkipped()) {
+                    summary.incrementSkipped();
+                } else {
+                    summary.incrementFailed();
+                    if (result.failure() != null) {
+                        summary.addFailure(result.failure());
+                    }
+                }
+
+                pb.step();
+            }
+
+            pb.close();
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "目录处理失败", e);
         }

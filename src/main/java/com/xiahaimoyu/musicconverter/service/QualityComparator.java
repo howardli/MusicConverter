@@ -6,6 +6,8 @@ import org.jaudiotagger.audio.AudioHeader;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * 音质比较服务
@@ -13,6 +15,8 @@ import java.nio.file.Path;
  * 比较两个音频文件的音质，决定是否需要替换
  */
 public final class QualityComparator {
+
+    private static final Logger LOG = Logger.getLogger(QualityComparator.class.getName());
 
     /**
      * 判断新文件是否应替换旧文件
@@ -50,7 +54,8 @@ public final class QualityComparator {
 
             return newHeader.getSampleRateAsNumber() > oldHeader.getSampleRateAsNumber();
         } catch (Exception e) {
-            return false;
+            LOG.log(Level.WARNING, "无法比较音质，默认保留新文件: " + newFile, e);
+            return true;  // 无法比较时，保留新文件避免丢失更高音质
         }
     }
 

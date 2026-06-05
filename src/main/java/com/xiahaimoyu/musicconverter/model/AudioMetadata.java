@@ -45,7 +45,7 @@ public final class AudioMetadata {
     }
 
     public byte[] coverArt() {
-        return coverArt;
+        return coverArt != null ? coverArt.clone() : null;
     }
 
     public String coverMimeType() {
