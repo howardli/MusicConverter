@@ -4,7 +4,7 @@ import com.xiahaimoyu.musicconverter.config.ConverterConfig;
 import com.xiahaimoyu.musicconverter.exception.ConverterException;
 import com.xiahaimoyu.musicconverter.model.AudioMetadata;
 import com.xiahaimoyu.musicconverter.model.ConversionResult;
-import com.xiahaimoyu.musicconverter.plugin.Decoder;
+import com.xiahaimoyu.musicconverter.plugin.AudioDecoder;
 import com.xiahaimoyu.musicconverter.plugin.FormatPlugin;
 import com.xiahaimoyu.musicconverter.plugin.MetadataHandler;
 import com.xiahaimoyu.musicconverter.plugin.PluginRegistry;
@@ -57,26 +57,26 @@ public final class ConversionService {
      * @param targetRoot 目标目录根
      * @return 处理结果
      */
-    public ConversionSummary.SummaryResult processFile(Path source, Path sourceRoot, Path targetRoot) {
+    public ConversionSummary.Result processFile(Path source, Path sourceRoot, Path targetRoot) {
         String extension = PathUtils.extractExtension(source.getFileName().toString());
 
         if (!registry.supports(extension)) {
-            return ConversionSummary.SummaryResult.skipped();
+            return ConversionSummary.Result.skipped();
         }
 
         try {
             return doProcessFile(source, sourceRoot, targetRoot, extension);
         } catch (ConverterException e) {
             LOG.log(Level.WARNING, "转换失败: " + source, e);
-            return ConversionSummary.SummaryResult.failed(e);
+            return ConversionSummary.Result.failed(e);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "转换失败: " + source, e);
-            return ConversionSummary.SummaryResult.failed(
+            return ConversionSummary.Result.failed(
                     new ConverterException(ConverterException.ErrorCode.AUDIO_PROCESS_FAILED, source, e));
         }
     }
 
-    private ConversionSummary.SummaryResult doProcessFile(Path source, Path sourceRoot,
+    private ConversionSummary.Result doProcessFile(Path source, Path sourceRoot,
                                                           Path targetRoot, String extension) throws Exception {
         // 1. 确保目标目录存在
         Path targetDir = fileOrganizer.ensureTargetDir(source, sourceRoot, targetRoot);
@@ -86,12 +86,12 @@ public final class ConversionService {
                 new ConverterException(ConverterException.ErrorCode.UNSUPPORTED_FORMAT, source));
 
         // 3. 创建解码器并解码
-        Decoder decoder = plugin.createDecoder();
+        AudioDecoder decoder = plugin.createDecoder();
         Path tempBase = fileOrganizer.generateTempFile(targetDir, source);
         ConversionResult result = decoder.decode(source, tempBase);
 
         if (!result.isSuccess()) {
-            return ConversionSummary.SummaryResult.skipped();
+            return ConversionSummary.Result.skipped();
         }
 
         Path tempFile = result.outputFile();
@@ -112,10 +112,10 @@ public final class ConversionService {
         Path finalFile = fileOrganizer.resolveFinalFile(targetDir, tempFile, source);
         if (qualityComparator.shouldReplace(tempFile, finalFile)) {
             fileOrganizer.replace(tempFile, finalFile);
-            return ConversionSummary.SummaryResult.success();
+            return ConversionSummary.Result.success();
         } else {
             fileOrganizer.cleanup(tempFile);
-            return ConversionSummary.SummaryResult.skipped();
+            return ConversionSummary.Result.skipped();
         }
     }
 
@@ -136,7 +136,7 @@ public final class ConversionService {
                     .forEach(file -> {
                         summary.incrementTotal();
 
-                        ConversionSummary.SummaryResult result = processFile(file, sourceRoot, targetRoot);
+                        ConversionSummary.Result result = processFile(file, sourceRoot, targetRoot);
 
                         if (result.isSuccess()) {
                             summary.incrementSuccess();

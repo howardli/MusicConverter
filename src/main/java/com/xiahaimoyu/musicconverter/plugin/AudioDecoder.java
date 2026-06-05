@@ -6,11 +6,11 @@ import com.xiahaimoyu.musicconverter.model.ConversionResult;
 import java.nio.file.Path;
 
 /**
- * 解码器接口
+ * 音频解码器接口
  * <p>
  * 负责将加密音频文件解码为标准格式
  */
-public interface Decoder {
+public interface AudioDecoder {
 
     /**
      * 解码音频文件

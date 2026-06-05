@@ -3,7 +3,7 @@ package com.xiahaimoyu.musicconverter.plugin.builtin;
 import com.xiahaimoyu.musicconverter.exception.ConverterException;
 import com.xiahaimoyu.musicconverter.exception.ConverterException.ErrorCode;
 import com.xiahaimoyu.musicconverter.model.ConversionResult;
-import com.xiahaimoyu.musicconverter.plugin.Decoder;
+import com.xiahaimoyu.musicconverter.plugin.AudioDecoder;
 import com.xiahaimoyu.musicconverter.util.PathUtils;
 
 import java.io.IOException;
@@ -17,7 +17,7 @@ import java.nio.file.StandardCopyOption;
  * <p>
  * 将普通音频文件直接复制到目标位置
  */
-public final class CopyDecoder implements Decoder {
+public final class CopyDecoder implements AudioDecoder {
 
     @Override
     public ConversionResult decode(Path source, Path output) throws ConverterException {

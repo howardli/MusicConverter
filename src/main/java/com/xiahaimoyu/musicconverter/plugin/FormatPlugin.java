@@ -20,9 +20,9 @@ public interface FormatPlugin {
     /**
      * 创建解码器实例
      *
-     * @return 解码器
+     * @return 音频解码器
      */
-    Decoder createDecoder();
+    AudioDecoder createDecoder();
 
     /**
      * 创建元数据处理实例（可选）

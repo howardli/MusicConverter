@@ -10,7 +10,7 @@ import java.util.Optional;
 public abstract class AbstractPlugin implements FormatPlugin {
 
     @Override
-    public Decoder createDecoder() {
+    public AudioDecoder createDecoder() {
         return createDecoderInstance();
     }
 
@@ -23,9 +23,9 @@ public abstract class AbstractPlugin implements FormatPlugin {
     /**
      * 创建解码器实例（子类必须实现）
      *
-     * @return 解码器
+     * @return 音频解码器
      */
-    protected abstract Decoder createDecoderInstance();
+    protected abstract AudioDecoder createDecoderInstance();
 
     /**
      * 创建元数据处理器实例（子类可选实现）

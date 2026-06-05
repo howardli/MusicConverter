@@ -98,27 +98,27 @@ public final class ConversionSummary {
     /**
      * 单文件处理结果（内部使用）
      */
-    public static final class SummaryResult {
+    public static final class Result {
         private final boolean success;
         private final boolean skipped;
         private final ConverterException failure;
 
-        private SummaryResult(boolean success, boolean skipped, ConverterException failure) {
+        private Result(boolean success, boolean skipped, ConverterException failure) {
             this.success = success;
             this.skipped = skipped;
             this.failure = failure;
         }
 
-        public static SummaryResult success() {
-            return new SummaryResult(true, false, null);
+        public static Result success() {
+            return new Result(true, false, null);
         }
 
-        public static SummaryResult skipped() {
-            return new SummaryResult(false, true, null);
+        public static Result skipped() {
+            return new Result(false, true, null);
         }
 
-        public static SummaryResult failed(ConverterException e) {
-            return new SummaryResult(false, false, e);
+        public static Result failed(ConverterException e) {
+            return new Result(false, false, e);
         }
 
         public boolean isSuccess() { return success; }
