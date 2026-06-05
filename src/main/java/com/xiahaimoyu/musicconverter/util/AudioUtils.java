@@ -20,13 +20,13 @@ public final class AudioUtils {
      */
     public static boolean hasHigherQuality(File newFile, File oldFile) {
         try {
-            AudioHeader nh = readHeader(newFile);
-            AudioHeader oh = readHeader(oldFile);
+            AudioHeader newHeader = readHeader(newFile);
+            AudioHeader oldHeader = readHeader(oldFile);
 
-            int cmp = Long.compare(nh.getBitRateAsNumber(), oh.getBitRateAsNumber());
+            int cmp = Long.compare(newHeader.getBitRateAsNumber(), oldHeader.getBitRateAsNumber());
             if (cmp != 0) return cmp > 0;
 
-            return nh.getSampleRateAsNumber() > oh.getSampleRateAsNumber();
+            return newHeader.getSampleRateAsNumber() > oldHeader.getSampleRateAsNumber();
         } catch (Exception e) {
             return false;
         }

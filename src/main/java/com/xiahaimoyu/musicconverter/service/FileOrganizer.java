@@ -9,10 +9,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static com.xiahaimoyu.musicconverter.util.PathUtils.baseNameOf;
+import static com.xiahaimoyu.musicconverter.util.PathUtils.extractBaseName;
 import static com.xiahaimoyu.musicconverter.util.PathUtils.extensionOf;
-import static com.xiahaimoyu.musicconverter.util.PathUtils.normalize;
-import static com.xiahaimoyu.musicconverter.util.PathUtils.sanitize;
+import static com.xiahaimoyu.musicconverter.util.PathUtils.normalizeToNFC;
+import static com.xiahaimoyu.musicconverter.util.PathUtils.replaceIllegalChars;
 
 /**
  * 文件组织服务
@@ -49,7 +49,7 @@ public final class FileOrganizer {
      * @return 临时文件路径（不含扩展名）
      */
     public Path generateTempFile(Path targetDir, Path source) {
-        String baseName = sanitize(baseNameOf(normalize(source.getFileName().toString())));
+        String baseName = replaceIllegalChars(extractBaseName(normalizeToNFC(source.getFileName().toString())));
         return targetDir.resolve(ConverterConfig.TEMP_FILE_PREFIX + baseName);
     }
 
@@ -62,7 +62,7 @@ public final class FileOrganizer {
      * @return 最终文件路径
      */
     public Path resolveFinalFile(Path targetDir, Path tempFile, Path source) {
-        String baseName = sanitize(baseNameOf(normalize(source.getFileName().toString())));
+        String baseName = replaceIllegalChars(extractBaseName(normalizeToNFC(source.getFileName().toString())));
         String extension = extensionOf(tempFile.getFileName().toString());
         return targetDir.resolve(baseName + extension);
     }

@@ -4,7 +4,7 @@ import com.xiahaimoyu.musicconverter.exception.ConverterException;
 import com.xiahaimoyu.musicconverter.exception.ConverterException.ErrorCode;
 import com.xiahaimoyu.musicconverter.model.AudioMetadata;
 import com.xiahaimoyu.musicconverter.model.ConversionResult;
-import com.xiahaimoyu.musicconverter.plugin.Decoder;
+import com.xiahaimoyu.musicconverter.plugin.AudioDecoder;
 
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
@@ -16,7 +16,7 @@ import java.nio.file.Paths;
  * <p>
  * 将网易云 NCM 加密格式解码为标准 MP3/FLAC
  */
-public final class NcmDecoder implements Decoder {
+public final class NcmDecoder implements AudioDecoder {
 
     @Override
     public ConversionResult decode(Path source, Path output) throws ConverterException {

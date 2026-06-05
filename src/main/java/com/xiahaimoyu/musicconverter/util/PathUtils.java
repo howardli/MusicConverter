@@ -15,14 +15,14 @@ public final class PathUtils {
     /**
      * Unicode NFC 规范化
      */
-    public static String normalize(String filename) {
+    public static String normalizeToNFC(String filename) {
         return Normalizer.normalize(filename, Normalizer.Form.NFC);
     }
 
     /**
      * 获取文件基本名（不含扩展名）
      */
-    public static String baseNameOf(String filename) {
+    public static String extractBaseName(String filename) {
         int dot = filename.lastIndexOf('.');
         return dot > 0 ? filename.substring(0, dot) : filename;
     }
@@ -38,7 +38,7 @@ public final class PathUtils {
     /**
      * 替换文件名中的非法字符
      */
-    public static String sanitize(String filename) {
+    public static String replaceIllegalChars(String filename) {
         return filename.replaceAll(ILLEGAL_CHARS_PATTERN, "_");
     }
 

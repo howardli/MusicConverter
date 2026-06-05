@@ -1,7 +1,7 @@
 package com.xiahaimoyu.musicconverter.plugin.netease;
 
 import com.xiahaimoyu.musicconverter.plugin.AbstractPlugin;
-import com.xiahaimoyu.musicconverter.plugin.Decoder;
+import com.xiahaimoyu.musicconverter.plugin.AudioDecoder;
 import com.xiahaimoyu.musicconverter.plugin.MetadataHandler;
 
 import java.util.Collections;
@@ -27,7 +27,7 @@ public final class NeteasePlugin extends AbstractPlugin {
     }
 
     @Override
-    protected Decoder createDecoderInstance() {
+    protected AudioDecoder createDecoderInstance() {
         return new NcmDecoder();
     }
 

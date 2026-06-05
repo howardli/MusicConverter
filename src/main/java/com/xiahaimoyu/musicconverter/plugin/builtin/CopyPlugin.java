@@ -1,7 +1,7 @@
 package com.xiahaimoyu.musicconverter.plugin.builtin;
 
 import com.xiahaimoyu.musicconverter.plugin.AbstractPlugin;
-import com.xiahaimoyu.musicconverter.plugin.Decoder;
+import com.xiahaimoyu.musicconverter.plugin.AudioDecoder;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +29,7 @@ public final class CopyPlugin extends AbstractPlugin {
     }
 
     @Override
-    protected Decoder createDecoderInstance() {
+    protected AudioDecoder createDecoderInstance() {
         return new CopyDecoder();
     }
 }

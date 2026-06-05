@@ -161,19 +161,19 @@ final class NcmFormat {
     }
 
     private static int[] buildSbox(byte[] key) {
-        int[] s = new int[256];
+        int[] sbox = new int[256];
         for (int i = 0; i < 256; i++) {
-            s[i] = i;
+            sbox[i] = i;
         }
 
         int j = 0;
         for (int i = 0; i < 256; i++) {
-            j = (j + s[i] + (key[i % key.length] & 0xFF)) & 0xFF;
-            int tmp = s[i];
-            s[i] = s[j];
-            s[j] = tmp;
+            j = (j + sbox[i] + (key[i % key.length] & 0xFF)) & 0xFF;
+            int tmp = sbox[i];
+            sbox[i] = sbox[j];
+            sbox[j] = tmp;
         }
-        return s;
+        return sbox;
     }
 
     private static void xor(byte[] data, int key) {
