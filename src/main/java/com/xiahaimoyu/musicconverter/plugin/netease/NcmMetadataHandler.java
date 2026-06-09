@@ -13,6 +13,8 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.images.StandardArtwork;
 
 import java.nio.file.Path;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * NCM 元数据处理器
@@ -20,6 +22,8 @@ import java.nio.file.Path;
  * 将提取的元数据（标题、专辑、艺术家、封面）写入音频文件
  */
 public final class NcmMetadataHandler implements MetadataHandler {
+
+    private static final Logger LOG = Logger.getLogger(NcmMetadataHandler.class.getName());
 
     @Override
     public void writeMetadata(Path file, AudioMetadata metadata) throws ConverterException {
@@ -60,8 +64,8 @@ public final class NcmMetadataHandler implements MetadataHandler {
                 artwork.setBinaryData(resized);
                 artwork.setMimeType(mime);
                 tag.setField(artwork);
-            } catch (Exception ignored) {
-                // 封面写入失败不影响主流程
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "封面写入失败", e);
             }
         });
     }
