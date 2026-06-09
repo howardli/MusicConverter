@@ -11,8 +11,9 @@
 - 📝 **元数据保留** - 完整保留专辑、标题、艺术家、封面等信息
 - 🎯 **音质优先** - 自动比较音质，保留高比特率/采样率版本
 - 📁 **目录结构** - 保持原有文件夹层级结构
-- ⚡ **并行处理** - 多线程处理，性能优异
+- 📊 **进度显示** - 彩色进度条，实时显示处理进度
 - 🔧 **插件架构** - 模块化设计，支持快速扩展新平台
+- 🧪 **单元测试** - 完整的测试覆盖
 
 ## 📥 下载安装
 
@@ -41,6 +42,13 @@ mvn clean package
 java -jar MusicConverter.jar <源目录> <目标目录>
 ```
 
+### 命令行选项
+
+```bash
+java -jar MusicConverter.jar --help     # 显示帮助信息
+java -jar MusicConverter.jar --version  # 显示版本信息
+```
+
 ### 示例
 
 ```bash
@@ -61,7 +69,7 @@ java -jar MusicConverter.jar "/home/xxx/Music/网易云音乐" "/home/xxx/Music/
 目标目录: /Users/xxx/Music/Unlocked
 支持格式: ncm, mp3, flac, wav, aac, ogg, m4a
 
-已处理: 128 个文件
+处理文件 ████████████████████████████████████ 100% 128/128
 完成! 处理 128 个文件，成功 128，跳过 0，失败 0
 ```
 
@@ -107,8 +115,13 @@ src/main/java/com/xiahaimoyu/musicconverter/
 │   └── QualityComparator.java       # 音质比较服务
 └── util/
     ├── PathUtils.java               # 路径处理工具
-    ├── AudioUtils.java              # 音频处理工具
     └── ImageUtils.java              # 图片处理工具
+
+src/test/java/                        # 单元测试
+├── util/PathUtilsTest.java
+├── util/ImageUtilsTest.java
+└── service/FileOrganizerTest.java
+└── service/QualityComparatorTest.java
 ```
 
 ## 🔌 扩展开发
@@ -169,13 +182,21 @@ PluginRegistry registry = PluginRegistry.of(
 | 依赖 | 版本 | 说明 |
 |------|------|------|
 | jaudiotagger | 3.0.1 | 音频元数据处理 |
-| fastjson | 1.2.83 | JSON 解析 |
+| fastjson2 | 2.0.62 | JSON 解析 |
+| progressbar | 0.10.1 | 进度条显示 |
+| junit-jupiter | 5.10.2 | 单元测试（test scope） |
 
 ## 🛠️ 环境要求
 
 - **JDK**: 8 或更高版本
 - **Maven**: 3.6+（仅编译时需要）
 - **OS**: Windows / macOS / Linux
+
+## 🧪 运行测试
+
+```bash
+mvn test
+```
 
 ## ⚠️ 免责声明
 
