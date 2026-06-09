@@ -135,9 +135,9 @@ final class NcmFormat {
         }
     }
 
-    // === 私有辅助方法 ===
+    // === 辅助方法 ===
 
-    private static AudioMetadata parseMetadata(JSONObject json) {
+    static AudioMetadata parseMetadata(JSONObject json) {
         return AudioMetadata.builder()
                 .album(json.getString("album"))
                 .title(json.getString("musicName"))
@@ -146,7 +146,7 @@ final class NcmFormat {
                 .build();
     }
 
-    private static List<String> extractArtists(JSONArray arr) {
+    static List<String> extractArtists(JSONArray arr) {
         if (arr == null || arr.isEmpty()) {
             return new ArrayList<>();
         }
@@ -164,7 +164,7 @@ final class NcmFormat {
         return data;
     }
 
-    private static int[] buildSbox(byte[] key) {
+    static int[] buildSbox(byte[] key) {
         int[] sbox = new int[256];
         for (int i = 0; i < 256; i++) {
             sbox[i] = i;
@@ -180,7 +180,7 @@ final class NcmFormat {
         return sbox;
     }
 
-    private static void xor(byte[] data, int key) {
+    static void xor(byte[] data, int key) {
         for (int i = 0; i < data.length; i++) {
             data[i] ^= key;
         }
@@ -192,7 +192,7 @@ final class NcmFormat {
         return cipher.doFinal(data);
     }
 
-    private static byte[] hex(String s) {
+    static byte[] hex(String s) {
         byte[] data = new byte[s.length() / 2];
         for (int i = 0; i < data.length; i++) {
             data[i] = (byte) Integer.parseInt(s.substring(2 * i, 2 * i + 2), 16);
