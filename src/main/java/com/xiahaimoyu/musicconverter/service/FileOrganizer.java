@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.xiahaimoyu.musicconverter.util.PathUtils.extractBaseName;
 import static com.xiahaimoyu.musicconverter.util.PathUtils.extensionOf;
@@ -20,6 +22,8 @@ import static com.xiahaimoyu.musicconverter.util.PathUtils.replaceIllegalChars;
  * 负责目标目录创建、文件命名、临时文件清理
  */
 public final class FileOrganizer {
+
+    private static final Logger LOG = Logger.getLogger(FileOrganizer.class.getName());
 
     /**
      * 确保目标目录存在
@@ -75,8 +79,8 @@ public final class FileOrganizer {
     public void cleanup(Path tempFile) {
         try {
             Files.deleteIfExists(tempFile);
-        } catch (IOException ignored) {
-            // 清理失败不影响主流程
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "临时文件清理失败: " + tempFile, e);
         }
     }
 
