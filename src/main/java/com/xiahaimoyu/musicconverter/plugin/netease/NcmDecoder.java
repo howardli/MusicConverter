@@ -34,18 +34,17 @@ public final class NcmDecoder implements AudioDecoder {
 
             // 4. 读取封面
             byte[] coverArt = NcmFormat.readCoverArt(raf);
-            if (coverArt == null) {
-                return ConversionResult.failure();
-            }
 
-            // 5. 合并封面到元数据
-            AudioMetadata fullMetadata = AudioMetadata.builder()
+            // 5. 合并封面到元数据（无封面时仍继续处理）
+            AudioMetadata.Builder metadataBuilder = AudioMetadata.builder()
                     .title(metadata.title())
                     .album(metadata.album())
                     .artists(metadata.artists())
-                    .format(metadata.format())
-                    .coverArt(coverArt)
-                    .build();
+                    .format(metadata.format());
+            if (coverArt != null) {
+                metadataBuilder.coverArt(coverArt);
+            }
+            AudioMetadata fullMetadata = metadataBuilder.build();
 
             // 6. 解密音频数据
             Path outputFile = Paths.get(output + "." + fullMetadata.format());
