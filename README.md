@@ -11,9 +11,8 @@
 - 📝 **元数据保留** - 完整保留专辑、标题、艺术家、封面等信息
 - 🎯 **音质优先** - 自动比较音质，保留高比特率/采样率版本
 - 📁 **目录结构** - 保持原有文件夹层级结构
-- 📊 **进度显示** - 彩色进度条，实时显示处理进度
+- ⚡ **并行处理** - 多线程处理，性能优异
 - 🔧 **插件架构** - 模块化设计，支持快速扩展新平台
-- 🧪 **单元测试** - 完整的测试覆盖
 
 ## 📥 下载安装
 
@@ -42,36 +41,17 @@ mvn clean package
 java -jar MusicConverter.jar <源目录> <目标目录>
 ```
 
-### 命令行参数
-
-```
-Usage: MusicConverter [-hqvV] [-f=<formats>[,<formats>...]]... <sourceDir> <targetDir>
-解密加密音乐格式，保留元数据和目录结构
-
-      <sourceDir>   源目录路径
-      <targetDir>   目标目录路径
-  -f, --format=<formats>[,<formats>...]
-                    只处理指定格式（逗号分隔），如: ncm,mp3
-  -h, --help        显示帮助信息
-  -q, --quiet       静默模式，只显示错误
-  -v, --verbose     显示详细日志
-  -V, --version     显示版本信息
-```
-
 ### 示例
 
 ```bash
-# 基本使用
+# Windows
+java -jar MusicConverter.jar "D:\Music\网易云音乐" "D:\Music\Unlocked"
+
+# macOS
 java -jar MusicConverter.jar "/Users/xxx/Music/网易云音乐" "/Users/xxx/Music/Unlocked"
 
-# 只处理 NCM 文件
-java -jar MusicConverter.jar -f ncm "/Users/xxx/Music/网易云音乐" "/Users/xxx/Music/Unlocked"
-
-# 显示详细日志
-java -jar MusicConverter.jar -v "/Users/xxx/Music/网易云音乐" "/Users/xxx/Music/Unlocked"
-
-# 静默模式
-java -jar MusicConverter.jar -q "/Users/xxx/Music/网易云音乐" "/Users/xxx/Music/Unlocked"
+# Linux
+java -jar MusicConverter.jar "/home/xxx/Music/网易云音乐" "/home/xxx/Music/Unlocked"
 ```
 
 ### 运行结果
@@ -81,7 +61,7 @@ java -jar MusicConverter.jar -q "/Users/xxx/Music/网易云音乐" "/Users/xxx/M
 目标目录: /Users/xxx/Music/Unlocked
 支持格式: ncm, mp3, flac, wav, aac, ogg, m4a
 
-处理文件 ████████████████████████████████████ 100% 128/128
+已处理: 128 个文件
 完成! 处理 128 个文件，成功 128，跳过 0，失败 0
 ```
 
@@ -98,7 +78,7 @@ java -jar MusicConverter.jar -q "/Users/xxx/Music/网易云音乐" "/Users/xxx/M
 
 ```
 src/main/java/com/xiahaimoyu/musicconverter/
-├── MusicConverterApp.java           # 应用入口（picocli 命令行）
+├── MusicConverterApp.java           # 应用入口
 ├── config/
 │   └── ConverterConfig.java         # 配置常量
 ├── exception/
@@ -127,11 +107,8 @@ src/main/java/com/xiahaimoyu/musicconverter/
 │   └── QualityComparator.java       # 音质比较服务
 └── util/
     ├── PathUtils.java               # 路径处理工具
+    ├── AudioUtils.java              # 音频处理工具
     └── ImageUtils.java              # 图片处理工具
-
-src/test/java/                        # 单元测试
-├── util/PathUtilsTest.java
-└── service/FileOrganizerTest.java
 ```
 
 ## 🔌 扩展开发
@@ -192,22 +169,13 @@ PluginRegistry registry = PluginRegistry.of(
 | 依赖 | 版本 | 说明 |
 |------|------|------|
 | jaudiotagger | 3.0.1 | 音频元数据处理 |
-| fastjson2 | 2.0.62 | JSON 解析（安全升级版） |
-| picocli | 4.7.6 | 命令行参数解析 |
-| progressbar | 0.10.1 | 进度条显示 |
-| junit-jupiter | 5.10.2 | 单元测试（test scope） |
+| fastjson | 1.2.83 | JSON 解析 |
 
 ## 🛠️ 环境要求
 
 - **JDK**: 8 或更高版本
 - **Maven**: 3.6+（仅编译时需要）
 - **OS**: Windows / macOS / Linux
-
-## 🧪 运行测试
-
-```bash
-mvn test
-```
 
 ## ⚠️ 免责声明
 
