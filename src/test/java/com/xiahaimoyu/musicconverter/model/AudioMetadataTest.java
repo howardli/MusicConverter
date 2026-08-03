@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -104,5 +103,36 @@ class AudioMetadataTest {
         assertEquals("", metadata.title());
         assertEquals("", metadata.album());
         assertEquals("", metadata.format());
+    }
+
+    @Test
+    @DisplayName("toBuilder - 保留所有字段并允许修改")
+    void testToBuilder() {
+        byte[] cover = new byte[]{(byte) 0xFF, (byte) 0xD8};
+        AudioMetadata original = AudioMetadata.builder()
+                .title("原曲")
+                .album("原专辑")
+                .artists(Arrays.asList("歌手A"))
+                .coverArt(cover)
+                .coverMimeType("image/jpeg")
+                .format("mp3")
+                .lyrics("原歌词")
+                .build();
+
+        byte[] newCover = new byte[]{(byte) 0x89, 0x50};
+        AudioMetadata derived = original.toBuilder()
+                .coverArt(newCover)
+                .build();
+
+        // 未修改的字段保留
+        assertEquals("原曲", derived.title());
+        assertEquals("原专辑", derived.album());
+        assertEquals("歌手A", derived.primaryArtist());
+        assertEquals("image/jpeg", derived.coverMimeType());
+        assertEquals("mp3", derived.format());
+        assertEquals("原歌词", derived.lyrics());
+
+        // 修改的字段生效
+        assertArrayEquals(newCover, derived.coverArt());
     }
 }

@@ -13,6 +13,7 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.images.StandardArtwork;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,12 +43,14 @@ public final class NcmMetadataHandler implements MetadataHandler {
             }
 
             audio.commit();
+        } catch (ConverterException e) {
+            throw e;
         } catch (Exception e) {
             throw new ConverterException(ErrorCode.METADATA_WRITE_FAILED, file, e);
         }
     }
 
-    private void writeCoverArt(Tag tag, AudioMetadata metadata) throws Exception {
+    private void writeCoverArt(Tag tag, AudioMetadata metadata) {
         byte[] coverArt = metadata.coverArt();
 
         // 缩放封面图片
@@ -57,16 +60,20 @@ public final class NcmMetadataHandler implements MetadataHandler {
                 .orElse(coverArt);
 
         // 检测 MIME 类型并写入
-        ImageUtils.detectMimeType(resized).ifPresent(mime -> {
-            try {
-                tag.deleteArtworkField();
-                StandardArtwork artwork = new StandardArtwork();
-                artwork.setBinaryData(resized);
-                artwork.setMimeType(mime);
-                tag.setField(artwork);
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "封面写入失败", e);
-            }
-        });
+        Optional<String> mime = ImageUtils.detectMimeType(resized);
+        if (!mime.isPresent()) {
+            LOG.log(Level.WARNING, "无法识别封面图片格式，跳过封面写入");
+            return;
+        }
+
+        try {
+            tag.deleteArtworkField();
+            StandardArtwork artwork = new StandardArtwork();
+            artwork.setBinaryData(resized);
+            artwork.setMimeType(mime.get());
+            tag.setField(artwork);
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "封面写入失败", e);
+        }
     }
 }

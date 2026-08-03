@@ -5,7 +5,6 @@ import com.xiahaimoyu.musicconverter.exception.ConverterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 转换统计结果
@@ -57,32 +56,32 @@ public final class ConversionSummary {
     }
 
     /**
-     * Builder 内部类（线程安全）
+     * Builder 内部类
      */
     public static final class Builder {
-        private final AtomicInteger totalFiles = new AtomicInteger(0);
-        private final AtomicInteger successCount = new AtomicInteger(0);
-        private final AtomicInteger skippedCount = new AtomicInteger(0);
-        private final AtomicInteger failedCount = new AtomicInteger(0);
-        private final List<ConverterException> failures = Collections.synchronizedList(new ArrayList<>());
+        private int totalFiles;
+        private int successCount;
+        private int skippedCount;
+        private int failedCount;
+        private final List<ConverterException> failures = new ArrayList<>();
 
         public Builder incrementTotal() {
-            this.totalFiles.incrementAndGet();
+            this.totalFiles++;
             return this;
         }
 
         public Builder incrementSuccess() {
-            this.successCount.incrementAndGet();
+            this.successCount++;
             return this;
         }
 
         public Builder incrementSkipped() {
-            this.skippedCount.incrementAndGet();
+            this.skippedCount++;
             return this;
         }
 
         public Builder incrementFailed() {
-            this.failedCount.incrementAndGet();
+            this.failedCount++;
             return this;
         }
 
@@ -93,16 +92,16 @@ public final class ConversionSummary {
 
         public ConversionSummary build() {
             return new ConversionSummary(
-                    totalFiles.get(),
-                    successCount.get(),
-                    skippedCount.get(),
-                    failedCount.get(),
-                    new ArrayList<>(failures));  // 复制以避免后续修改
+                    totalFiles,
+                    successCount,
+                    skippedCount,
+                    failedCount,
+                    new ArrayList<>(failures));
         }
     }
 
     /**
-     * 单文件处理结果（内部使用）
+     * 单文件处理结果
      */
     public static final class Result {
         private final boolean success;

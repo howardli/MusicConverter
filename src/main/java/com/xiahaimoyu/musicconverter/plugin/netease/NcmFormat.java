@@ -10,12 +10,15 @@ import com.xiahaimoyu.musicconverter.model.AudioMetadata;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,8 +39,8 @@ final class NcmFormat {
     // NCM 文件结构常量
     private static final int HEADER_SIZE = 10;
     private static final int CRC_GAP_SIZE = 9;
-    private static final int MAGIC_NTET = 0x4354454E;
-    private static final int MAGIC_NCNE = 0x4E455443;
+    private static final int MAGIC_CTEN = 0x4354454E;   // "CTEN"
+    private static final int MAGIC_NETC = 0x4E455443;   // "NETC"
 
     // 前缀长度
     private static final int KEY_PREFIX_LENGTH = 17;    // "neteasecloudmusic"
@@ -52,7 +55,7 @@ final class NcmFormat {
     static boolean isValidFormat(RandomAccessFile raf) throws IOException {
         int magic = raf.readInt();
         raf.skipBytes(HEADER_SIZE - 4);
-        return magic == MAGIC_NTET || magic == MAGIC_NCNE;
+        return magic == MAGIC_CTEN || magic == MAGIC_NETC;
     }
 
     /**
@@ -75,10 +78,16 @@ final class NcmFormat {
 
     /**
      * 读取并解析元数据
+     * <p>
+     * 某些 NCM 文件不含元数据（块长度为 0），此时返回空元数据
      */
     static AudioMetadata readMetadata(RandomAccessFile raf) throws ConverterException {
         try {
             byte[] encrypted = readBlock(raf);
+            if (encrypted.length == 0) {
+                return AudioMetadata.builder().build();
+            }
+
             xor(encrypted, XOR_META_BLOCK);
 
             byte[] decoded = Base64.getMimeDecoder().decode(
@@ -115,18 +124,23 @@ final class NcmFormat {
 
     /**
      * 解密音频数据
+     * <p>
+     * 预计算 256 字节密钥流，再循环异或到音频数据上
      */
     static void decryptAudio(RandomAccessFile raf, int[] sbox, Path output) throws ConverterException {
-        try (java.io.BufferedOutputStream out = new java.io.BufferedOutputStream(
-                new java.io.FileOutputStream(output.toFile()), ConverterConfig.BUFFER_SIZE)) {
+        byte[] keystream = buildKeystream(sbox);
+
+        try (BufferedOutputStream out = new BufferedOutputStream(
+                new FileOutputStream(output.toFile()), ConverterConfig.BUFFER_SIZE)) {
 
             byte[] buf = new byte[ConverterConfig.BUFFER_SIZE];
             int len;
+            int pos = 0;
 
             while ((len = raf.read(buf)) != -1) {
                 for (int i = 0; i < len; i++) {
-                    int j = (i + 1) & 0xFF;
-                    buf[i] ^= sbox[(sbox[j] + sbox[(sbox[j] + j) & 0xFF]) & 0xFF];
+                    buf[i] ^= keystream[pos];
+                    pos = (pos + 1) & 0xFF;
                 }
                 out.write(buf, 0, len);
             }
@@ -148,7 +162,7 @@ final class NcmFormat {
 
     static List<String> extractArtists(JSONArray arr) {
         if (arr == null || arr.isEmpty()) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
         List<String> artists = new ArrayList<>();
         for (int i = 0; i < arr.size(); i++) {
@@ -180,6 +194,18 @@ final class NcmFormat {
         return sbox;
     }
 
+    /**
+     * 根据 S-Box 构建 256 字节密钥流
+     */
+    private static byte[] buildKeystream(int[] sbox) {
+        byte[] keystream = new byte[256];
+        for (int i = 0; i < 256; i++) {
+            int j = (i + 1) & 0xFF;
+            keystream[i] = (byte) sbox[(sbox[j] + sbox[(sbox[j] + j) & 0xFF]) & 0xFF];
+        }
+        return keystream;
+    }
+
     static void xor(byte[] data, int key) {
         for (int i = 0; i < data.length; i++) {
             data[i] ^= key;
@@ -192,7 +218,7 @@ final class NcmFormat {
         return cipher.doFinal(data);
     }
 
-    static byte[] hex(String s) {
+    private static byte[] hex(String s) {
         byte[] data = new byte[s.length() / 2];
         for (int i = 0; i < data.length; i++) {
             data[i] = (byte) Integer.parseInt(s.substring(2 * i, 2 * i + 2), 16);

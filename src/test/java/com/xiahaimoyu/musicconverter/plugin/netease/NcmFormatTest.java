@@ -64,34 +64,6 @@ class NcmFormatTest {
     }
 
     @Test
-    @DisplayName("hex - 十六进制字符串转字节数组")
-    void testHex() {
-        byte[] result = NcmFormat.hex("48656C6C6F");
-        assertEquals(5, result.length);
-        assertEquals('H', result[0]);
-        assertEquals('e', result[1]);
-        assertEquals('l', result[2]);
-        assertEquals('l', result[3]);
-        assertEquals('o', result[4]);
-    }
-
-    @Test
-    @DisplayName("hex - 空字符串返回空数组")
-    void testHexEmpty() {
-        byte[] result = NcmFormat.hex("");
-        assertEquals(0, result.length);
-    }
-
-    @Test
-    @DisplayName("hex - CORE_KEY 正确解析")
-    void testHexCoreKey() {
-        byte[] key = NcmFormat.hex("687A4852416D736F356B496E62617857");
-        assertEquals(16, key.length);
-        assertEquals('h', key[0]);  // 0x68
-        assertEquals('z', key[1]);  // 0x7A
-    }
-
-    @Test
     @DisplayName("extractArtists - 从 JSON 数组提取艺术家")
     void testExtractArtists() {
         JSONArray arr = JSON.parseArray("[[0,\"Artist A\"],[0,\"Artist B\"]]");

@@ -81,7 +81,7 @@ public final class ConversionService {
     }
 
     private ConversionSummary.Result doProcessFile(Path source, Path sourceRoot,
-                                                          Path targetRoot, String extension) throws Exception {
+                                                   Path targetRoot, String extension) throws Exception {
         // 1. 确保目标目录存在
         Path targetDir = fileOrganizer.ensureTargetDir(source, sourceRoot, targetRoot);
 
@@ -137,32 +137,31 @@ public final class ConversionService {
         try (Stream<Path> files = Files.walk(sourceRoot)) {
             List<Path> allFiles = files.filter(Files::isRegularFile).collect(Collectors.toList());
 
-            ProgressBar pb = new ProgressBarBuilder()
+            try (ProgressBar pb = new ProgressBarBuilder()
                     .setTaskName("处理文件")
                     .setInitialMax(allFiles.size())
                     .setStyle(ProgressBarStyle.COLORFUL_UNICODE_BLOCK)
-                    .build();
+                    .build()) {
 
-            for (Path file : allFiles) {
-                summary.incrementTotal();
+                for (Path file : allFiles) {
+                    summary.incrementTotal();
 
-                ConversionSummary.Result result = processFile(file, sourceRoot, targetRoot);
+                    ConversionSummary.Result result = processFile(file, sourceRoot, targetRoot);
 
-                if (result.isSuccess()) {
-                    summary.incrementSuccess();
-                } else if (result.isSkipped()) {
-                    summary.incrementSkipped();
-                } else {
-                    summary.incrementFailed();
-                    if (result.failure() != null) {
-                        summary.addFailure(result.failure());
+                    if (result.isSuccess()) {
+                        summary.incrementSuccess();
+                    } else if (result.isSkipped()) {
+                        summary.incrementSkipped();
+                    } else {
+                        summary.incrementFailed();
+                        if (result.failure() != null) {
+                            summary.addFailure(result.failure());
+                        }
                     }
+
+                    pb.step();
                 }
-
-                pb.step();
             }
-
-            pb.close();
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "目录处理失败", e);
         }

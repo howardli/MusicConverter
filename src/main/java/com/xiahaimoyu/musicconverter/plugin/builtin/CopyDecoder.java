@@ -22,7 +22,9 @@ public final class CopyDecoder implements AudioDecoder {
     @Override
     public ConversionResult decode(Path source, Path output) throws ConverterException {
         String extension = PathUtils.extractExtension(source.getFileName().toString());
-        Path target = Paths.get(output + "." + extension);
+        Path target = extension != null
+                ? Paths.get(output + "." + extension)
+                : output;
 
         try {
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);

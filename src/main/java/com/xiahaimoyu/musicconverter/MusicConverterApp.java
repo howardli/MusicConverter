@@ -17,7 +17,7 @@ import java.nio.file.Paths;
  */
 public final class MusicConverterApp {
 
-    private static final String VERSION = "MusicConverter 1.0";
+    private static final String VERSION = "MusicConverter 1.1";
     private static final int EXIT_USAGE_ERROR = 1;
     private static final int EXIT_SOURCE_NOT_FOUND = 2;
 

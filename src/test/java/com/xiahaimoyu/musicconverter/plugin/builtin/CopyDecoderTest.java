@@ -84,7 +84,7 @@ class CopyDecoderTest {
     }
 
     @Test
-    @DisplayName("decode - 无扩展名的文件")
+    @DisplayName("decode - 无扩展名的文件直接使用输出路径")
     void testDecodeNoExtension() throws Exception {
         Path source = tempDir.resolve("testfile");
         Files.writeString(source, "content");
@@ -93,8 +93,8 @@ class CopyDecoderTest {
 
         ConversionResult result = decoder.decode(source, outputBase);
 
-        // 无扩展名时 extractExtension 返回 null，路径会变成 "output.null"
         assertTrue(result.isSuccess());
-        assertTrue(result.outputFile().getFileName().toString().endsWith(".null"));
+        assertEquals(tempDir.resolve("output"), result.outputFile());
+        assertTrue(Files.exists(result.outputFile()));
     }
 }

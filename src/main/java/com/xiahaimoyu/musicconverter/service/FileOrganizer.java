@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -85,7 +86,7 @@ public final class FileOrganizer {
     }
 
     /**
-     * 替换文件（删除旧文件，移动新文件）
+     * 原子替换：将新文件移动到旧文件位置，覆盖旧文件
      *
      * @param newFile 新文件
      * @param oldFile 旧文件
@@ -93,8 +94,7 @@ public final class FileOrganizer {
      */
     public void replace(Path newFile, Path oldFile) throws ConverterException {
         try {
-            Files.deleteIfExists(oldFile);
-            Files.move(newFile, oldFile);
+            Files.move(newFile, oldFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new ConverterException(ErrorCode.FILE_WRITE_FAILED, oldFile, e);
         }

@@ -86,6 +86,20 @@ public final class AudioMetadata {
     }
 
     /**
+     * 以当前实例为模板创建 Builder，用于派生修改
+     */
+    public Builder toBuilder() {
+        return new Builder()
+                .title(title)
+                .album(album)
+                .artists(artists)
+                .coverArt(coverArt)
+                .coverMimeType(coverMimeType)
+                .format(format)
+                .lyrics(lyrics);
+    }
+
+    /**
      * Builder 内部类
      */
     public static final class Builder {
