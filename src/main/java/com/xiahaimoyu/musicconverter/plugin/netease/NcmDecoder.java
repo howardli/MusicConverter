@@ -38,8 +38,12 @@ public final class NcmDecoder implements AudioDecoder {
                     ? metadata.toBuilder().coverArt(coverArt).build()
                     : metadata;
 
-            // 5. 解密音频数据
-            Path outputFile = Paths.get(output + "." + fullMetadata.format());
+            // 5. 解密音频数据（元数据缺失 format 字段时嗅探音频头推断扩展名）
+            String format = fullMetadata.format();
+            if (format.isEmpty()) {
+                format = NcmFormat.detectAudioFormat(raf, sbox);
+            }
+            Path outputFile = Paths.get(output + "." + format);
             NcmFormat.decryptAudio(raf, sbox, outputFile);
 
             return ConversionResult.success(outputFile, fullMetadata);

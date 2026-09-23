@@ -5,6 +5,14 @@ import com.xiahaimoyu.musicconverter.exception.ConverterException.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -85,5 +93,43 @@ class ConversionSummaryTest {
 
         assertThrows(UnsupportedOperationException.class, () ->
                 summary.failures().add(new ConverterException(ErrorCode.DECRYPT_FAILED, null)));
+    }
+
+    @Test
+    @DisplayName("Builder - 并发递增不丢失计数")
+    void testBuilderConcurrentIncrements() throws Exception {
+        int threads = 8;
+        int loops = 500;
+        ConversionSummary.Builder builder = ConversionSummary.builder();
+
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        CountDownLatch start = new CountDownLatch(1);
+        try {
+            List<Future<?>> futures = new ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                futures.add(pool.submit(() -> {
+                    start.await();
+                    for (int i = 0; i < loops; i++) {
+                        builder.incrementTotal();
+                        builder.incrementSuccess();
+                        builder.incrementFailed();
+                        builder.addFailure(new ConverterException(ErrorCode.DECRYPT_FAILED, null));
+                    }
+                    return null;
+                }));
+            }
+            start.countDown();
+            for (Future<?> f : futures) {
+                f.get(10, TimeUnit.SECONDS);
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+
+        ConversionSummary summary = builder.build();
+        assertEquals(threads * loops, summary.totalFiles());
+        assertEquals(threads * loops, summary.successCount());
+        assertEquals(threads * loops, summary.failedCount());
+        assertEquals(threads * loops, summary.failures().size());
     }
 }

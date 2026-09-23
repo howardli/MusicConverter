@@ -43,8 +43,6 @@ public final class NcmMetadataHandler implements MetadataHandler {
             }
 
             audio.commit();
-        } catch (ConverterException e) {
-            throw e;
         } catch (Exception e) {
             throw new ConverterException(ErrorCode.METADATA_WRITE_FAILED, file, e);
         }

@@ -5,6 +5,7 @@ import com.xiahaimoyu.musicconverter.exception.ConverterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 转换统计结果
@@ -56,32 +57,32 @@ public final class ConversionSummary {
     }
 
     /**
-     * Builder 内部类
+     * Builder 内部类（线程安全）
      */
     public static final class Builder {
-        private int totalFiles;
-        private int successCount;
-        private int skippedCount;
-        private int failedCount;
-        private final List<ConverterException> failures = new ArrayList<>();
+        private final AtomicInteger totalFiles = new AtomicInteger(0);
+        private final AtomicInteger successCount = new AtomicInteger(0);
+        private final AtomicInteger skippedCount = new AtomicInteger(0);
+        private final AtomicInteger failedCount = new AtomicInteger(0);
+        private final List<ConverterException> failures = Collections.synchronizedList(new ArrayList<>());
 
         public Builder incrementTotal() {
-            this.totalFiles++;
+            this.totalFiles.incrementAndGet();
             return this;
         }
 
         public Builder incrementSuccess() {
-            this.successCount++;
+            this.successCount.incrementAndGet();
             return this;
         }
 
         public Builder incrementSkipped() {
-            this.skippedCount++;
+            this.skippedCount.incrementAndGet();
             return this;
         }
 
         public Builder incrementFailed() {
-            this.failedCount++;
+            this.failedCount.incrementAndGet();
             return this;
         }
 
@@ -91,12 +92,13 @@ public final class ConversionSummary {
         }
 
         public ConversionSummary build() {
+            // 构造器内部会做防御性复制，此处直接传递即可
             return new ConversionSummary(
-                    totalFiles,
-                    successCount,
-                    skippedCount,
-                    failedCount,
-                    new ArrayList<>(failures));
+                    totalFiles.get(),
+                    successCount.get(),
+                    skippedCount.get(),
+                    failedCount.get(),
+                    failures);
         }
     }
 

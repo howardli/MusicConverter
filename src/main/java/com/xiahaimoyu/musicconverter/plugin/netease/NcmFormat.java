@@ -15,11 +15,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * NCM 格式解析工具
@@ -27,6 +30,8 @@ import java.util.List;
  * 负责解析 NCM 文件的加密结构，提取密钥、元数据、封面
  */
 final class NcmFormat {
+
+    private static final Logger LOG = Logger.getLogger(NcmFormat.class.getName());
 
     // AES 密钥（硬编码）
     private static final byte[] CORE_KEY = hex("687A4852416D736F356B496E62617857");
@@ -46,6 +51,10 @@ final class NcmFormat {
     private static final int KEY_PREFIX_LENGTH = 17;    // "neteasecloudmusic"
     private static final int META_PREFIX_LENGTH = 22;   // "163 key(Don't modify):"
     private static final int JSON_PREFIX_LENGTH = 6;    // "music:"
+
+    // 音频格式（元数据缺失 format 字段时用于嗅探兜底）
+    private static final String FORMAT_FLAC = "flac";
+    private static final String FORMAT_MP3 = "mp3";
 
     private NcmFormat() {}
 
@@ -145,8 +154,47 @@ final class NcmFormat {
                 out.write(buf, 0, len);
             }
         } catch (IOException e) {
+            // 删除残留的不完整输出，避免在目标目录留下损坏文件
+            deletePartialOutput(output);
             throw new ConverterException(ErrorCode.FILE_WRITE_FAILED, output, e);
         }
+    }
+
+    /**
+     * 删除解密中断留下的不完整输出文件
+     */
+    private static void deletePartialOutput(Path output) {
+        try {
+            Files.deleteIfExists(output);
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "残留临时文件清理失败: " + output, e);
+        }
+    }
+
+    /**
+     * 嗅探音频数据头判断实际格式
+     * <p>
+     * 元数据缺失 format 字段时（如无元数据的 NCM），解密音频前几个字节，
+     * 根据音频魔数推断扩展名：fLaC 为 flac，其余（ID3、MPEG 帧同步等）按 mp3 处理
+     */
+    static String detectAudioFormat(RandomAccessFile raf, int[] sbox) throws IOException {
+        long pos = raf.getFilePointer();
+        byte[] head = new byte[4];
+        int len = raf.read(head);
+        raf.seek(pos);
+
+        if (len < 4) {
+            return FORMAT_MP3;
+        }
+
+        byte[] keystream = buildKeystream(sbox);
+        for (int i = 0; i < 4; i++) {
+            head[i] ^= keystream[i];
+        }
+
+        return head[0] == 'f' && head[1] == 'L' && head[2] == 'a' && head[3] == 'C'
+                ? FORMAT_FLAC
+                : FORMAT_MP3;
     }
 
     // === 辅助方法 ===
@@ -197,7 +245,7 @@ final class NcmFormat {
     /**
      * 根据 S-Box 构建 256 字节密钥流
      */
-    private static byte[] buildKeystream(int[] sbox) {
+    static byte[] buildKeystream(int[] sbox) {
         byte[] keystream = new byte[256];
         for (int i = 0; i < 256; i++) {
             int j = (i + 1) & 0xFF;
