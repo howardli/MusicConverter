@@ -15,6 +15,7 @@ import me.tongfei.progressbar.ProgressBarStyle;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -30,6 +31,9 @@ import java.util.stream.Stream;
 public final class ConversionService {
 
     private static final Logger LOG = Logger.getLogger(ConversionService.class.getName());
+
+    /** NCM 解码产物可能的扩展名（元数据缺失时按音频头嗅探，仅可能为 FLAC 或 MP3） */
+    private static final List<String> NCM_OUTPUT_EXTENSIONS = Arrays.asList(".flac", ".mp3");
 
     static {
         // 关闭第三方库日志
@@ -89,7 +93,12 @@ public final class ConversionService {
         FormatPlugin plugin = registry.find(extension).orElseThrow(() ->
                 new ConverterException(ConverterException.ErrorCode.UNSUPPORTED_FORMAT, source));
 
-        // 3. 创建解码器并解码
+        // 3. 增量跳过：目标已有不早于源文件修改时间的产物，无需重复解码
+        if (fileOrganizer.hasFreshOutput(source, targetDir, outputExtensionsOf(extension))) {
+            return ConversionSummary.Result.skipped();
+        }
+
+        // 4. 创建解码器并解码
         AudioDecoder decoder = plugin.createDecoder();
         Path tempBase = fileOrganizer.generateTempFile(targetDir, source);
         ConversionResult result = decoder.decode(source, tempBase);
@@ -101,7 +110,7 @@ public final class ConversionService {
         Path tempFile = result.outputFile();
         AudioMetadata metadata = result.metadata();
 
-        // 4. 写入元数据
+        // 5. 写入元数据
         if (metadata != null) {
             plugin.createMetadataHandler().ifPresent(handler -> {
                 try {
@@ -112,7 +121,7 @@ public final class ConversionService {
             });
         }
 
-        // 5. 音质比较决定是否替换
+        // 6. 音质比较决定是否替换
         Path finalFile = fileOrganizer.resolveFinalFile(targetDir, tempFile, source);
         if (qualityComparator.shouldReplace(tempFile, finalFile)) {
             fileOrganizer.replace(tempFile, finalFile);
@@ -121,6 +130,13 @@ public final class ConversionService {
             fileOrganizer.cleanup(tempFile);
             return ConversionSummary.Result.skipped();
         }
+    }
+
+    /**
+     * 源文件对应产物可能的扩展名：NCM 解码后为 FLAC/MP3，其余格式原样复制保持扩展名
+     */
+    private List<String> outputExtensionsOf(String extension) {
+        return "ncm".equals(extension) ? NCM_OUTPUT_EXTENSIONS : Arrays.asList("." + extension);
     }
 
     /**

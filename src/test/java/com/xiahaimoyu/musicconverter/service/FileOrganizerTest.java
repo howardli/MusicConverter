@@ -88,4 +88,67 @@ class FileOrganizerTest {
         assertTrue(Files.exists(oldFile));
         assertEquals("new content", Files.readString(oldFile));
     }
+
+    @Test
+    @DisplayName("hasFreshOutput - NCM 已有不早于源文件的产物时跳过")
+    void testHasFreshOutputNcmFresh() throws Exception {
+        Path source = tempDir.resolve("song.ncm");
+        Path targetDir = tempDir.resolve("target");
+        Files.write(source, new byte[]{1});
+        Files.createDirectories(targetDir);
+
+        Path output = targetDir.resolve("song.flac");
+        Files.write(output, new byte[]{1});
+        Files.setLastModifiedTime(output, Files.getLastModifiedTime(source));
+
+        assertTrue(fileOrganizer.hasFreshOutput(source, targetDir,
+                java.util.Arrays.asList(".flac", ".mp3")));
+    }
+
+    @Test
+    @DisplayName("hasFreshOutput - 产物早于源文件（源已更新）时不跳过")
+    void testHasFreshOutputStale() throws Exception {
+        Path source = tempDir.resolve("song.ncm");
+        Path targetDir = tempDir.resolve("target");
+        Files.write(source, new byte[]{1});
+        Files.createDirectories(targetDir);
+
+        Path output = targetDir.resolve("song.flac");
+        Files.write(output, new byte[]{1});
+        Files.setLastModifiedTime(output,
+                java.nio.file.attribute.FileTime.fromMillis(System.currentTimeMillis() - 60_000));
+
+        assertFalse(fileOrganizer.hasFreshOutput(source, targetDir,
+                java.util.Arrays.asList(".flac", ".mp3")));
+    }
+
+    @Test
+    @DisplayName("hasFreshOutput - 无产物时不跳过")
+    void testHasFreshOutputMissing() throws Exception {
+        Path source = tempDir.resolve("song.ncm");
+        Path targetDir = tempDir.resolve("target");
+        Files.write(source, new byte[]{1});
+        Files.createDirectories(targetDir);
+
+        assertFalse(fileOrganizer.hasFreshOutput(source, targetDir,
+                java.util.Arrays.asList(".flac", ".mp3")));
+    }
+
+    @Test
+    @DisplayName("hasFreshOutput - 普通格式按原扩展名探测")
+    void testHasFreshOutputCopyFormat() throws Exception {
+        Path source = tempDir.resolve("song.mp3");
+        Path targetDir = tempDir.resolve("target");
+        Files.write(source, new byte[]{1});
+        Files.createDirectories(targetDir);
+
+        Path output = targetDir.resolve("song.mp3");
+        Files.write(output, new byte[]{1});
+        Files.setLastModifiedTime(output, Files.getLastModifiedTime(source));
+
+        assertTrue(fileOrganizer.hasFreshOutput(source, targetDir,
+                java.util.Arrays.asList(".mp3")));
+        assertFalse(fileOrganizer.hasFreshOutput(source, targetDir,
+                java.util.Arrays.asList(".flac")));
+    }
 }

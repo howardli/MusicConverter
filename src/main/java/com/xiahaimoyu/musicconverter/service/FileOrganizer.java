@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,6 +72,35 @@ public final class FileOrganizer {
         String baseName = replaceIllegalChars(extractBaseName(normalizeToNFC(source.getFileName().toString())));
         String extension = extensionOf(tempFile.getFileName().toString());
         return targetDir.resolve(baseName + extension);
+    }
+
+    /**
+     * 判断源文件是否已存在处理产物（增量跳过用）
+     * <p>
+     * 目标目录中存在基于同一源文件命名的产物，且其修改时间不早于源文件，
+     * 说明此前已处理过且源文件未变化，无需重复解码。
+     * NCM 解码产物的扩展名在解码前未知，由调用方传入候选扩展名逐个探测。
+     *
+     * @param source      源文件
+     * @param targetDir   目标目录
+     * @param outputExts  产物可能的扩展名（含点号）
+     * @return 存在新鲜产物时返回 true
+     */
+    public boolean hasFreshOutput(Path source, Path targetDir, List<String> outputExts) {
+        String baseName = replaceIllegalChars(extractBaseName(normalizeToNFC(source.getFileName().toString())));
+        try {
+            FileTime sourceMtime = Files.getLastModifiedTime(source);
+            for (String ext : outputExts) {
+                Path finalFile = targetDir.resolve(baseName + ext);
+                if (Files.exists(finalFile)
+                        && Files.getLastModifiedTime(finalFile).compareTo(sourceMtime) >= 0) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "检查已处理产物失败: " + source, e);
+        }
+        return false;
     }
 
     /**
