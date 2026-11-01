@@ -128,6 +128,8 @@ public final class ConversionService {
             return ConversionSummary.Result.success();
         } else {
             fileOrganizer.cleanup(tempFile);
+            // 保留旧产物时刷新其修改时间，让增量跳过在下次运行时命中
+            fileOrganizer.touch(finalFile);
             return ConversionSummary.Result.skipped();
         }
     }

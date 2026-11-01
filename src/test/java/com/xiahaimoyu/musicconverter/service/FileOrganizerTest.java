@@ -90,6 +90,20 @@ class FileOrganizerTest {
     }
 
     @Test
+    @DisplayName("touch - 刷新文件修改时间")
+    void testTouch() throws Exception {
+        Path file = tempDir.resolve("song.flac");
+        Files.write(file, new byte[]{1});
+        long oldTime = System.currentTimeMillis() - 60_000;
+        Files.setLastModifiedTime(file,
+                java.nio.file.attribute.FileTime.fromMillis(oldTime));
+
+        fileOrganizer.touch(file);
+
+        assertTrue(Files.getLastModifiedTime(file).toMillis() > oldTime + 30_000);
+    }
+
+    @Test
     @DisplayName("hasFreshOutput - NCM 已有不早于源文件的产物时跳过")
     void testHasFreshOutputNcmFresh() throws Exception {
         Path source = tempDir.resolve("song.ncm");

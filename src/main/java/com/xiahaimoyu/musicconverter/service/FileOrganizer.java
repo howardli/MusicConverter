@@ -104,6 +104,22 @@ public final class FileOrganizer {
     }
 
     /**
+     * 刷新文件修改时间（标记该源文件已处理过）
+     * <p>
+     * 音质比较保留旧产物时调用；否则旧产物时间戳不更新，
+     * 增量跳过的 mtime 比较永远无法命中，每次运行都会重复解码
+     *
+     * @param file 目标文件
+     */
+    public void touch(Path file) {
+        try {
+            Files.setLastModifiedTime(file, java.nio.file.attribute.FileTime.from(java.time.Instant.now()));
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "刷新文件时间失败: " + file, e);
+        }
+    }
+
+    /**
      * 清理临时文件
      *
      * @param tempFile 临时文件路径
