@@ -9,6 +9,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,7 +45,7 @@ class ConversionServiceTest {
         Path source = tempDir.resolve("source/test.mp3");
         Path target = tempDir.resolve("target");
         Files.createDirectories(source.getParent());
-        Files.writeString(source, "audio content");
+        Files.write(source, "audio content".getBytes(StandardCharsets.UTF_8));
 
         ConversionSummary.Result result = service.processFile(source, source.getParent(), target);
 
@@ -58,7 +59,7 @@ class ConversionServiceTest {
                 PluginRegistry.of(new CopyPlugin()));
 
         Path source = tempDir.resolve("test.unknown");
-        Files.writeString(source, "content");
+        Files.write(source, "content".getBytes(StandardCharsets.UTF_8));
 
         ConversionSummary.Result result = service.processFile(source, tempDir, tempDir);
 
@@ -76,9 +77,9 @@ class ConversionServiceTest {
         Files.createDirectories(sourceDir);
 
         // 创建多个文件
-        Files.writeString(sourceDir.resolve("a.mp3"), "a");
-        Files.writeString(sourceDir.resolve("b.flac"), "b");
-        Files.writeString(sourceDir.resolve("c.unknown"), "c");
+        Files.write(sourceDir.resolve("a.mp3"), "a".getBytes(StandardCharsets.UTF_8));
+        Files.write(sourceDir.resolve("b.flac"), "b".getBytes(StandardCharsets.UTF_8));
+        Files.write(sourceDir.resolve("c.unknown"), "c".getBytes(StandardCharsets.UTF_8));
 
         ConversionSummary summary = service.processDirectory(sourceDir, targetDir);
 

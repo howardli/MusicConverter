@@ -6,6 +6,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,8 +35,8 @@ class QualityComparatorTest {
         Path newFile = tempDir.resolve("new.txt");
         Path oldFile = tempDir.resolve("old.txt");
 
-        Files.writeString(newFile, "new");
-        Files.writeString(oldFile, "old");
+        Files.write(newFile, "new".getBytes(StandardCharsets.UTF_8));
+        Files.write(oldFile, "old".getBytes(StandardCharsets.UTF_8));
 
         // 非 audio 文件会触发异常，返回 true 并记录日志
         assertTrue(comparator.shouldReplace(newFile, oldFile));

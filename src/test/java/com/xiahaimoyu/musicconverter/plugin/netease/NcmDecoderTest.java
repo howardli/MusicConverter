@@ -50,7 +50,7 @@ class NcmDecoderTest {
     void testDecodeInvalidFormat() throws Exception {
         // 创建一个不是 NCM 格式的文件
         Path source = tempDir.resolve("fake.ncm");
-        Files.writeString(source, "this is not a ncm file");
+        Files.write(source, "this is not a ncm file".getBytes(StandardCharsets.UTF_8));
 
         Path output = tempDir.resolve("output");
 
@@ -63,7 +63,7 @@ class NcmDecoderTest {
     @DisplayName("decode - 空文件抛出异常")
     void testDecodeEmptyFile() throws Exception {
         Path source = tempDir.resolve("empty.ncm");
-        Files.writeString(source, "");
+        Files.write(source, "".getBytes(StandardCharsets.UTF_8));
 
         Path output = tempDir.resolve("output");
 

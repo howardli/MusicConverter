@@ -6,6 +6,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -64,7 +65,7 @@ class FileOrganizerTest {
     @DisplayName("cleanup - 清理临时文件")
     void testCleanup() throws Exception {
         Path tempFile = tempDir.resolve("tmp_test.mp3");
-        Files.writeString(tempFile, "test content");
+        Files.write(tempFile, "test content".getBytes(StandardCharsets.UTF_8));
 
         assertTrue(Files.exists(tempFile));
 
@@ -79,14 +80,14 @@ class FileOrganizerTest {
         Path newFile = tempDir.resolve("new.mp3");
         Path oldFile = tempDir.resolve("old.mp3");
 
-        Files.writeString(newFile, "new content");
-        Files.writeString(oldFile, "old content");
+        Files.write(newFile, "new content".getBytes(StandardCharsets.UTF_8));
+        Files.write(oldFile, "old content".getBytes(StandardCharsets.UTF_8));
 
         fileOrganizer.replace(newFile, oldFile);
 
         assertFalse(Files.exists(newFile));
         assertTrue(Files.exists(oldFile));
-        assertEquals("new content", Files.readString(oldFile));
+        assertEquals("new content", new String(Files.readAllBytes(oldFile), StandardCharsets.UTF_8));
     }
 
     @Test

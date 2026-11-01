@@ -8,6 +8,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,7 +38,7 @@ class NcmMetadataHandlerTest {
     @DisplayName("writeMetadata - 非 audio 文件抛出异常")
     void testWriteMetadataNonAudioFile() throws Exception {
         Path file = tempDir.resolve("test.txt");
-        Files.writeString(file, "not audio");
+        Files.write(file, "not audio".getBytes(StandardCharsets.UTF_8));
 
         AudioMetadata metadata = AudioMetadata.builder()
                 .title("测试歌曲")
@@ -54,7 +55,7 @@ class NcmMetadataHandlerTest {
     void testWriteMetadataNoCover() throws Exception {
         // 创建一个简单的 MP3 文件（空文件会被 jaudiotagger 拒绝，所以用非 audio 测试）
         Path file = tempDir.resolve("test.txt");
-        Files.writeString(file, "content");
+        Files.write(file, "content".getBytes(StandardCharsets.UTF_8));
 
         AudioMetadata metadata = AudioMetadata.builder()
                 .title("无封面歌曲")
